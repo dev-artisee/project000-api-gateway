@@ -1,267 +1,447 @@
 {
+    "$schema": "https://www.krakend.io/schema/krakend.json",
     "version": 3,
-    "name": "My lovely gateway",
+    "name": "Project000 API Gateway",
+    "timeout": "3000ms",
+    "cache_ttl": "300s",
+    "output_encoding": "json",
     "port": 8080,
-    "cache_ttl": "3600s",
-    "timeout": "3s",
+    "host": [
+        "http://127.0.0.1:8080"
+    ],
+    "debug_endpoint": true,
     "extra_config": {
         "telemetry/logging": {
             "level": "DEBUG",
             "prefix": "[KRAKEND]",
             "syslog": false,
             "stdout": true
-        },
-        "telemetry/metrics": {
-            "collection_time": "60s",
-            "proxy_disabled": false,
-            "router_disabled": false,
-            "backend_disabled": false,
-            "endpoint_disabled": false,
-            "listen_address": ":8090"
-        },
-        "security/cors": {
-            "allow_origins": [
-                "http://192.168.99.100:3000",
-                "http://localhost:3000"
-            ],
-            "allow_methods": [
-                "POST",
-                "GET"
-            ],
-            "allow_headers": [
-                "Origin",
-                "Authorization",
-                "Content-Type"
-            ],
-            "expose_headers": [
-                "Content-Length"
-            ],
-            "max_age": "12h"
         }
     },
     "endpoints": [
         {
-            "endpoint": "/supu",
-            "method": "GET",
+            "endpoint": "/default-behavior",
+            "input_query_strings": [
+                "*"
+            ],
             "input_headers": [
-                "Authorization",
-                "Content-Type"
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
             ],
             "backend": [
                 {
+                    "@comment": "debug endpoint to check the configuration loaded into the router",
                     "host": [
-                        "http://127.0.0.1:8000"
+                        "http://127.0.0.1:8080"
                     ],
-                    "url_pattern": "/__debug/supu",
-                    "extra_config": {
-                        "modifier/martian": {
-                            "fifo.Group": {
-                                "scope": [
-                                    "request",
-                                    "response"
-                                ],
-                                "aggregateErrors": true,
-                                "modifiers": [
-                                    {
-                                        "header.Modifier": {
-                                            "scope": [
-                                                "request",
-                                                "response"
-                                            ],
-                                            "name": "X-Martian",
-                                            "value": "ouh yeah!"
-                                        }
-                                    },
-                                    {
-                                        "header.RegexFilter": {
-                                            "scope": [
-                                                "request"
-                                            ],
-                                            "header": "X-Neptunian",
-                                            "regex": "no!",
-                                            "modifier": {
-                                                "header.Modifier": {
-                                                    "scope": [
-                                                        "request"
-                                                    ],
-                                                    "name": "X-Martian-New",
-                                                    "value": "some value"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        "qos/circuit-breaker": {
-                            "interval": 60,
-                            "timeout": 10,
-                            "max_errors": 1
-                        }
-                    }
+                    "url_pattern": "/__debug/default"
                 }
-            ]
+            ],
+            "extra_config": {
+                "auth/validator": {
+                    "alg": "RS256",
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
+                }
+            }
         },
         {
-            "endpoint": "/github/{user}",
-            "method": "GET",
+            "endpoint": "/api/recommend/address",
+            "method": "POST",
+            "input_query_strings": [
+                "*"
+            ],
+            "input_headers": [
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
+            ],
             "backend": [
                 {
+                    "url_pattern": "/recommend/address",
+                    "encoding": "json",
+                    "sd": "static",
+                    "method": "POST",
                     "host": [
-                        "https://api.github.com"
-                    ],
-                    "url_pattern": "/",
-                    "allow": [
-                        "authorizations_url",
-                        "code_search_url"
-                    ],
-                    "disable_host_sanitize": true,
-                    "extra_config": {
-                        "modifier/martian": {
-                            "fifo.Group": {
-                                "scope": [
-                                    "request",
-                                    "response"
-                                ],
-                                "aggregateErrors": true,
-                                "modifiers": [
-                                    {
-                                        "header.Modifier": {
-                                            "scope": [
-                                                "request",
-                                                "response"
-                                            ],
-                                            "name": "X-Martian",
-                                            "value": "ouh yeah!"
-                                        }
-                                    },
-                                    {
-                                        "body.Modifier": {
-                                            "scope": [
-                                                "request"
-                                            ],
-                                            "contentType": "application/json",
-                                            "body": "eyJtc2ciOiJ5b3Ugcm9jayEifQ=="
-                                        }
-                                    },
-                                    {
-                                        "header.RegexFilter": {
-                                            "scope": [
-                                                "request"
-                                            ],
-                                            "header": "X-Neptunian",
-                                            "regex": "no!",
-                                            "modifier": {
-                                                "header.Modifier": {
-                                                    "scope": [
-                                                        "request"
-                                                    ],
-                                                    "name": "X-Martian-New",
-                                                    "value": "some value"
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        "qos/ratelimit/proxy": {
-                            "max_rate": 2,
-                            "capacity": 2
-                        },
-                        "qos/circuit-breaker": {
-                            "interval": 60,
-                            "timeout": 10,
-                            "max_errors": 1
-                        }
-                    }
-                }
-            ]
-        },
-        {
-            "endpoint": "/private/{user}",
-            "backend": [
-                {
-                    "host": [
-                        "http://api.github.com"
-                    ],
-                    "url_pattern": "/",
-                    "allow": [
-                        "authorizations_url",
-                        "code_search_url"
+                        "http://project000-backend-recommend"
                     ]
                 }
             ],
             "extra_config": {
                 "auth/validator": {
                     "alg": "RS256",
-                    "audience": [
-                        "http://api.example.com"
-                    ],
-                    "roles_key": "http://api.example.com/custom/roles",
-                    "roles": [
-                        "user",
-                        "admin"
-                    ],
-                    "jwk_url": "https://albert-test.auth0.com/.well-known/jwks.json"
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
                 }
             }
         },
         {
-            "endpoint": "/show/{id}",
+            "endpoint": "/api/recommend/address",
+            "method": "GET",
+            "input_query_strings": [
+                "*"
+            ],
+            "input_headers": [
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
+            ],
             "backend": [
                 {
+                    "url_pattern": "/recommend/address",
+                    "encoding": "json",
+                    "sd": "static",
+                    "method": "GET",
                     "host": [
-                        "http://showrss.info/"
-                    ],
-                    "url_pattern": "/user/schedule/{id}.rss",
-                    "encoding": "rss",
-                    "group": "schedule",
-                    "allow": [
-                        "items",
-                        "title"
-                    ],
-                    "extra_config": {
-                        "qos/ratelimit/proxy": {
-                            "max_rate": 1,
-                            "capacity": 1
-                        },
-                        "qos/circuit-breaker": {
-                            "interval": 60,
-                            "timeout": 10,
-                            "max_errors": 1
-                        }
-                    }
-                },
-                {
-                    "host": [
-                        "http://showrss.info/"
-                    ],
-                    "url_pattern": "/user/{id}.rss",
-                    "encoding": "rss",
-                    "group": "available",
-                    "allow": [
-                        "items",
-                        "title"
-                    ],
-                    "extra_config": {
-                        "qos/ratelimit/proxy": {
-                            "max_rate": 2,
-                            "capacity": 2
-                        },
-                        "qos/circuit-breaker": {
-                            "interval": 60,
-                            "timeout": 10,
-                            "max_errors": 1
-                        }
-                    }
+                        "http://project000-backend-recommend"
+                    ]
                 }
             ],
             "extra_config": {
-                "qos/ratelimit/router": {
-                    "max_rate": 50,
-                    "client_max_rate": 5,
-                    "strategy": "ip"
+                "auth/validator": {
+                    "alg": "RS256",
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "endpoint": "/api/recommend/address",
+            "method": "PATCH",
+            "input_query_strings": [
+                "*"
+            ],
+            "input_headers": [
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
+            ],
+            "backend": [
+                {
+                    "url_pattern": "/recommend/address",
+                    "encoding": "json",
+                    "sd": "static",
+                    "method": "PATCH",
+                    "host": [
+                        "http://project000-backend-recommend"
+                    ]
+                }
+            ],
+            "extra_config": {
+                "auth/validator": {
+                    "alg": "RS256",
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "endpoint": "/api/recommend/address",
+            "method": "DELETE",
+            "input_query_strings": [
+                "*"
+            ],
+            "input_headers": [
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
+            ],
+            "backend": [
+                {
+                    "url_pattern": "/recommend/address",
+                    "encoding": "json",
+                    "sd": "static",
+                    "method": "DELETE",
+                    "host": [
+                        "http://project000-backend-recommend"
+                    ]
+                }
+            ],
+            "extra_config": {
+                "auth/validator": {
+                    "alg": "RS256",
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "endpoint": "/api/recommend/place",
+            "method": "GET",
+            "input_query_strings": [
+                "*"
+            ],
+            "input_headers": [
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
+            ],
+            "backend": [
+                {
+                    "url_pattern": "/recommend/place",
+                    "encoding": "json",
+                    "sd": "static",
+                    "method": "GET",
+                    "host": [
+                        "http://project000-backend-recommend"
+                    ]
+                }
+            ],
+            "extra_config": {
+                "auth/validator": {
+                    "alg": "RS256",
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "endpoint": "/api/record/place",
+            "method": "GET",
+            "input_query_strings": [
+                "*"
+            ],
+            "input_headers": [
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
+            ],
+            "backend": [
+                {
+                    "url_pattern": "/record/place",
+                    "encoding": "json",
+                    "sd": "static",
+                    "method": "GET",
+                    "host": [
+                        "http://project000-backend-recommend"
+                    ]
+                }
+            ],
+            "extra_config": {
+                "auth/validator": {
+                    "alg": "RS256",
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "endpoint": "/api/record/place",
+            "method": "POST",
+            "input_query_strings": [
+                "*"
+            ],
+            "input_headers": [
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
+            ],
+            "backend": [
+                {
+                    "url_pattern": "/record/place",
+                    "encoding": "json",
+                    "sd": "static",
+                    "method": "POST",
+                    "host": [
+                        "http://project000-backend-recommend"
+                    ]
+                }
+            ],
+            "extra_config": {
+                "auth/validator": {
+                    "alg": "RS256",
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "endpoint": "/api/record/place",
+            "method": "DELETE",
+            "input_query_strings": [
+                "*"
+            ],
+            "input_headers": [
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
+            ],
+            "backend": [
+                {
+                    "url_pattern": "/record/place",
+                    "encoding": "json",
+                    "sd": "static",
+                    "method": "DELETE",
+                    "host": [
+                        "http://project000-backend-recommend"
+                    ]
+                }
+            ],
+            "extra_config": {
+                "auth/validator": {
+                    "alg": "RS256",
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "endpoint": "/api/record/rating",
+            "method": "POST",
+            "input_query_strings": [
+                "*"
+            ],
+            "input_headers": [
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
+            ],
+            "backend": [
+                {
+                    "url_pattern": "/record/rating",
+                    "encoding": "json",
+                    "sd": "static",
+                    "method": "POST",
+                    "host": [
+                        "http://project000-backend-recommend"
+                    ]
+                }
+            ],
+            "extra_config": {
+                "auth/validator": {
+                    "alg": "RS256",
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
+                }
+            }
+        },
+        {
+            "endpoint": "/api/record/rating",
+            "method": "PATCH",
+            "input_query_strings": [
+                "*"
+            ],
+            "input_headers": [
+                "User-Agent",
+                "Accept",
+                "X-User-ID",
+                "X-Device-ID"
+            ],
+            "backend": [
+                {
+                    "url_pattern": "/record/rating",
+                    "encoding": "json",
+                    "sd": "static",
+                    "method": "PATCH",
+                    "host": [
+                        "http://project000-backend-recommend"
+                    ]
+                }
+            ],
+            "extra_config": {
+                "auth/validator": {
+                    "alg": "RS256",
+                    "disable_jwk_security": true,
+                    "key_identify_strategy": "kid",
+                    "operation_debug": true,
+                    "jwk_local_path": "/etc/krakend/jwk.json",
+                    "propagate_claims": [
+                        [
+                            "sub",
+                            "X-User-ID"
+                        ]
+                    ]
                 }
             }
         }

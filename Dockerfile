@@ -2,7 +2,7 @@ FROM devopsfaith/krakend:2.4.3
 
 WORKDIR /etc/krakend
 
-COPY krakend.json .
+COPY . .
 
 EXPOSE 8080
 

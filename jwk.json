@@ -1,0 +1,12 @@
+{
+    "keys": [
+        {
+            "kty": "RSA",
+            "n": "zeSol_nPZNKIXDBnCtxfWpJxXUgEvkPT00YDwyvMJhWBYckF1G3IEIuQ2ihpEurYcDJQfmF62icDzzozS9vtYh5SsTwGYLP5BfA0W-7JzK6htNoLRu8mG3tSglMZkiGzsbRpojbyQ4TD3o46ExWfbjc4Bit6zeH_bTLFRvx_q4urVEju256gbKAchPt04cb9n4osMutK0FDhDPn5oBPsybcCbTUuqzg3viJo03QvK-GvQ2ed7uMMX-vDhYX0PBV8ANNrpqtR-lKvUP32HWGPVXFXbnO8l1LZQKzp8KpGn6wluYXg93dxvViCvDJ27zChK1uyPgzM9yF-7QR9ltE0XQ",
+            "e": "AQAB",
+            "alg": "RS256",
+            "kid": "def8bfc1-0771-4246-80a0-b580f8fa1f34",
+            "use": "enc"
+        }
+    ]
+}
