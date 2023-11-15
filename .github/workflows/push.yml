@@ -41,7 +41,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd /home/ubuntu/project000-environment
-            docker-compose pull
-            docker-compose up -d
+            docker compose pull
+            docker compose up -d
             echo "Deployed project000-api-gateway"
             docker image prune -f
