@@ -32,4 +32,16 @@ jobs:
           platforms: linux/amd64
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/project000-api-gateway:latest
 
-      # TODO: Add deployment step here
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /home/ubuntu/project000-environment
+            docker-compose pull
+            docker-compose up -d
+            echo "Deployed project000-api-gateway"
+            docker image prune -f
