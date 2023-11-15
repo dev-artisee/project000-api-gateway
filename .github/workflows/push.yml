@@ -29,6 +29,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
+          platforms: linux/amd64
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/project000-api-gateway:latest
 
       # TODO: Add deployment step here
